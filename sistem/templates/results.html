@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <style>
+       
+        body {
+            padding-top: 20px;
+            background-image: url('/static/images/2.avif'); /* Ruta a tu imagen */
+            background-size: cover; /* Ajusta la imagen al tamaño del fondo */
+            background-position: center; /* Centra la imagen */
+            background-repeat: no-repeat; /* Evita que la imagen se repita */
+        }
+
+        .container {
+            max-width: 1200px;
+        }
+        .card-header, .card-body {
+            padding: 1.25rem;
+        }
+        .btn-primary {
+            margin-top: 20px;
+        }
+        table th, table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+        .img-fluid {
+            max-width: 100%;
+            height: auto;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .pdf-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .btn-icon {
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-icon i {
+            margin-right: 8px;
+        }
+        
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Resultados del Cálculo</h1>
+        <div class="card">
+            <div class="card-header">
+                <h2>Método Utilizado</h2>
+            </div>
+            <div class="card-body">
+                <p class="text-center"><strong>{{ metodo }}</strong></p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Tabla de Iteraciones</h2>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Iteración</th>
+                                <th>xl</th>
+                                <th>xú</th>
+                                <th>xr</th>
+                                <th>f(xl)</th>
+                                <th>f(xú)</th>
+                                <th>f(xr)</th>
+                                <th>Error Aproximado (%)</th>
+                                <th>Error Verdadero</th>
+                                <th>Detalles</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for paso in pasos %}
+                            <tr>
+                                <td>{{ paso.iter }}</td>
+                                <td>{{ paso.xl }}</td>
+                                <td>{{ paso.xu }}</td>
+                                <td>{{ paso.xr }}</td>
+                                <td>{{ paso.fxl }}</td>
+                                <td>{{ paso.fxu }}</td>
+                                <td>{{ paso.fxr }}</td>
+                                <td>{{ paso.error_aprox }}</td>
+                                <td>{{ paso.error_verdadero }}</td>
+                                <td>
+                                    <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#detailsModal{{ paso.iter }}">Ver Detalles</button>
+                                </td>
+                            </tr>
+
+                            <!-- Modal for each iteration -->
+                            <div class="modal fade" id="detailsModal{{ paso.iter }}" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel{{ paso.iter }}" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="detailsModalLabel{{ paso.iter }}">Detalles de la Iteración {{ paso.iter }}</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p><strong>Operación:</strong> {{ paso.operacion }}</p>
+                                            <p><strong>Fórmula Utilizada:</strong> \( {{ paso.formula }} \)</p>
+                                            <p><strong>Procedimiento:</strong> {{ paso.procedimiento }}</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <h2>Raíz Encontrada: <strong>{{ raiz }}</strong></h2>
+        </div>
+
+        <div class="text-center mt-4">
+            <h3>Gráfico de la Función</h3>
+            <img src="{{ url_for('static', filename='plot.png') }}" alt="Gráfico de la función" class="img-fluid">
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Volver al Inicio</a>
+        </div>
+        
+        <div class="pdf-container">
+            <a href="{{ url_for('download_results') }}" class="btn btn-primary btn-icon">
+                <i class="fas fa-download"></i> Descargar Resultados
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function toggleDetails(iter) {
+            var details = document.getElementById('details-' + iter);
+            if (details.style.display === "none") {
+                details.style.display = "block";
+            } else {
+                details.style.display = "none";
+            }
+        }
+    </script>
+    <!-- Scripts de Bootstrap y JavaScript personalizado -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

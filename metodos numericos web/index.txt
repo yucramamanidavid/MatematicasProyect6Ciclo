@@ -1,0 +1,119 @@
+from flask import Flask, render_template, request
+import math
+import re
+
+app = Flask(__name__)
+def preprocess_function_str(function_str):
+    # Insertar '*' entre un número y una variable (ej: 2x -> 2*x)
+    function_str = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', function_str)
+    # Insertar '*' entre una variable y otra variable o número (ej: x2 -> x*2)
+    function_str = re.sub(r'([a-zA-Z])(\d)', r'\1*\2', function_str)
+    return function_str
+def biseccion(f, xl, xu, tol, max_iter):
+    iteraciones = []
+    errores = []
+    xr = xl
+    for i in range(1, max_iter + 1):
+        xr_old = xr
+        xr = (xl + xu) / 2.0
+        iteraciones.append(xr)
+        
+        # Calcular el error relativo
+        if i > 1:
+            ea = abs((xr - xr_old) / xr) * 100
+            errores.append(ea)
+        else:
+            errores.append(0.0)  # Primer error es 0
+        
+        fxr = f(xr)
+        fxl = f(xl)
+        
+        if fxl * fxr < 0:
+            xu = xr
+        elif fxr * f(xu) < 0:
+            xl = xr
+        else:
+            # Encontró una raíz exacta
+            break
+        
+        # Verificar la tolerancia
+        if i > 1 and ea < tol:
+            break
+    return xr, iteraciones, errores
+
+def falsa_posicion(f, xl, xu, tol, max_iter):
+    iteraciones = []
+    errores = []
+    xr = xl
+    for i in range(1, max_iter + 1):
+        xr_old = xr
+        fxl = f(xl)
+        fxu = f(xu)
+        xr = xu - (fxu * (xl - xu)) / (fxl - fxu)
+        iteraciones.append(xr)
+        
+        # Calcular el error relativo
+        if i > 1:
+            ea = abs((xr - xr_old) / xr) * 100
+            errores.append(ea)
+        else:
+            errores.append(0.0)  # Primer error es 0
+        
+        fxr = f(xr)
+        
+        if fxl * fxr < 0:
+            xu = xr
+        elif fxr * f(xu) < 0:
+            xl = xr
+        else:
+            # Encontró una raíz exacta
+            break
+        
+        # Verificar la tolerancia
+        if i > 1 and ea < tol:
+            break
+    return xr, iteraciones, errores
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    result = None
+    method = None
+    iteraciones = []
+    errores = []
+    error_message = None
+
+    if request.method == 'POST':
+        try:
+            # Obteniendo los valores del formulario
+            function_str = request.form['function']
+            xl = float(request.form['xl'])
+            xu = float(request.form['xu'])
+            tol = float(request.form['tol'])
+            max_iter = int(request.form['max_iter'])
+            method = request.form['method']
+
+            # Preprocesar la función para manejar notaciones implícitas
+            function_str = preprocess_function_str(function_str)
+
+            # Definir una función segura para evaluar la expresión matemática
+            allowed_names = {k: v for k, v in math.__dict__.items() if not k.startswith("__")}
+
+            def f(x):
+                allowed_names['x'] = x
+                return eval(function_str, {"__builtins__": {}}, allowed_names)
+
+            # Seleccionando el método numérico
+            if method == 'biseccion':
+                result, iteraciones, errores = biseccion(f, xl, xu, tol, max_iter)
+            elif method == 'falsa_posicion':
+                result, iteraciones, errores = falsa_posicion(f, xl, xu, tol, max_iter)
+            else:
+                error_message = "Método seleccionado no reconocido."
+        except (SyntaxError, NameError, ValueError) as e:
+            error_message = f"Error en la función ingresada: {str(e)}"
+        except Exception as e:
+            error_message = f"Error: {str(e)}"
+
+    return render_template('index.html', result=result, method=method, iteraciones=iteraciones, errores=errores, error_message=error_message)
+if __name__ == '__main__':
+    app.run(debug=True)

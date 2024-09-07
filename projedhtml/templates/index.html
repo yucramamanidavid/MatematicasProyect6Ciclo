@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Métodos Numéricos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Métodos Numéricos Interactivos</h1>
+
+        <!-- Mensajes de Error -->
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Formulario de Métodos Numéricos -->
+        <form id="methodForm" action="/calculate" method="POST">
+            <label for="method">Selecciona el método:</label>
+            <select id="method" name="method" onchange="updateForm()">
+                <option value="">--Selecciona un método--</option>
+                <option value="bisection">Bisección</option>
+                <option value="falsePosition">Falsa Posición</option>
+                <option value="newtonRaphson">Newton-Raphson</option>
+                <option value="secant">Secantes</option>
+                <option value="fixedPoint">Punto Fijo</option>
+                <option value="hybridBisectionFalsePosition">Híbrido Bisección y Falsa Posición</option>
+                <option value="hybridNewtonSecantFixedPoint">Híbrido Newton-Raphson, Secante y Punto Fijo</option>
+            </select>
+
+            <div id="formContainer"></div>
+
+            <button type="submit">Calcular</button>
+        </form>
+
+        <!-- Formulario de Comparación de Métodos Híbridos -->
+        <h2>Comparar Métodos Híbridos</h2>
+        <form id="compareForm" action="/compare" method="POST">
+            <label for="compareType">Tipo de comparación:</label>
+            <select id="compareType" name="compareType" onchange="updateCompareForm()">
+                <option value="">--Selecciona una opción--</option>
+                <option value="hybrid">Comparar métodos híbridos</option>
+            </select>
+
+            <div id="compareFormContainer"></div>
+
+            <button type="submit">Comparar</button>
+        </form>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

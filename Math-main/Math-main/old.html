@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Métodos Numéricos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222332;
+            margin: 0;
+            padding: 1% 1%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #c6c4cd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 10px 20px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            width: 100%;
+            color: #000;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #000;
+        }
+
+        input[type="text"], [type="number"], select {
+            color: #000;
+            background: transparent;
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #222332;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: white;
+            color: #222332;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x:auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            color: white;
+            background-color: #222332;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        canvas {
+            margin-top: 30px;
+            width: 100%;
+            max-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Métodos Numéricos</h1>
+        
+        <div class="form-group">
+            <label for="funcion">Selecciona o ingresa una función personalizada:</label>
+            <select id="funcion" onchange="toggleFuncionInput()">
+                <option value="f1">f(x) = x - cos(x)</option>
+                <option value="f2">f(x) = x^3 - x - 1</option>
+                <option value="f3">f(x) = x^2 - 2</option>
+                <option value="f4">f(x) = x - 4 + ln(x)</option>
+                <option value="custom">Función personalizada</option>
+            </select>
+            <input type="text" id="funcionPersonalizada" placeholder="Ingrese su función" style="display:none;">
+        </div>
+
+        <div class="form-group">
+            <label for="metodo">Selecciona el método:</label>
+            <select id="metodo">
+                <option value="biseccion">Bisección</option>
+                <option value="falsaPosicion">Falsa Posición</option>
+                <option value="hibrido">Híbrido</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="intervaloA">Intervalo A:</label>
+            <input type="text" id="intervaloA" placeholder="Ingrese el valor de A">
+        </div>
+
+        <div class="form-group">
+            <label for="intervaloB">Intervalo B:</label>
+            <input type="text" id="intervaloB" placeholder="Ingrese el valor de B">
+        </div>
+
+        <div class="form-group">
+            <label for="error">Margen de error (opcional):</label>
+            <input type="number" id="error" placeholder="Tolerancia: 0.01" step="0.01" />
+        </div>
+        
+        <button onclick="calcular()">Calcular</button>
+
+        <div class="table-container">
+            <table id="resultados">
+                <thead>
+                    <tr>
+                        <th>Iteración</th>
+                        <th>Intervalo [a, b]</th>
+                        <th>x nuevo</th>
+                        <th>f(x nuevo)</th>
+                        <th>Error Relativo (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Resultados -->
+                </tbody>
+            </table>
+        </div>
+
+        <canvas id="grafico"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.0.0/math.min.js"></script>
+
+    <script>
+        let chart;
+
+        function toggleFuncionInput() {
+            const select = document.getElementById("funcion");
+            const input = document.getElementById("funcionPersonalizada");
+            if (select.value === "custom") {
+                input.style.display = "block";
+            } else {
+                input.style.display = "none";
+            }
+        }
+
+        function calcular() {
+            const funcionSeleccionada = document.getElementById("funcion").value;
+            const metodoSeleccionado = document.getElementById("metodo").value;
+            const intervaloA = parseFloat(document.getElementById("intervaloA").value);
+            const intervaloB = parseFloat(document.getElementById("intervaloB").value);
+            let funcionPersonalizada = document.getElementById("funcionPersonalizada").value;
+
+            // Obtener el margen de error personalizado si está disponible
+            let margenErrorUsuario = parseFloat(document.getElementById("error").value);
+
+            let resultados = [];
+            let errorRelativo = 100;
+            let iteracion = 0;
+            const maxIteraciones = 50;
+
+            let f, margenError;
+            
+             // Validar y obtener la función seleccionada
+            if (funcionSeleccionada === "custom" && funcionPersonalizada) {
+                // Reemplazar funciones matemáticas comunes por Math.*
+                /*funcionPersonalizada = funcionPersonalizada
+                    .replace(/sin/g, "Math.sin")
+                    .replace(/sen/g, "Math.sin")
+                    .replace(/cos/g, "Math.cos")
+                    .replace(/tan/g, "Math.tan")
+                    .replace(/log/g, "Math.log")
+                    .replace(/ln/g, "Math.log")
+                    .replace(/sqrt/g, "Math.sqrt")
+                    .replace(/exp/g, "Math.exp")
+                    .replace(/pi/gi, "Math.PI")
+                    .replace(/e\b/gi, "Math.E")
+                    .replace(/([0-9\.]+)([a-zA-Z])/g, '$1*$2')
+                    .replace(/([a-zA-Z0-9\.\(\)]+)\^([\-]?[0-9\.]+)/g, 'Math.pow($1, $2)');]*/
+
+                try {
+
+                    // Validar y construir la función utilizando Math.js
+                    const node = math.parse(funcionPersonalizada);
+                    const code = node.compile(); // Compilar el código con Math.js
+
+                    // Probar la función con un valor simple para verificar si es válida
+                    f = (x) => code.evaluate({ x });
+
+                    // Probar con un valor simple para asegurarnos de que no haya errores
+                    //f(1);
+
+                    //f = code; // Devolver la función si es válida
+
+                    // Crear la función con x como argumento
+                    //f = new Function('x', `return ${funcionPersonalizada};`);
+                    //console.log("Funcion personalizada: ",f)
+                } catch (e) {
+                    console.error("Error al procesar la función:", e.message);
+                    alert("La función personalizada ingresada no es válida.");
+                    return;
+                }
+                margenError = parseFloat(document.getElementById("error").value) || 0.01; // Margen de error por defecto
+            } else {
+                console.log("Funcion por defecto")
+                 // Obtener la función seleccionada y el margen de error por defecto
+                const { f: funcionPredefinida, margenError: margenErrorPorDefecto } = obtenerFuncionYError(funcionSeleccionada);
+
+                f = funcionPredefinida;
+            
+                // Si el usuario ingresó un margen de error válido, usarlo, de lo contrario usar el margen por defecto
+                margenError = margenErrorUsuario && !isNaN(margenErrorUsuario) ? margenErrorUsuario : margenErrorPorDefecto;
+            }
+
+            // Variables para Bisección, Falsa Posición, e Híbrido
+            let a = intervaloA, b = intervaloB, xnuevo, xanterior = 0;
+            let raizAproximada = null; // Variable para guardar la raíz aproximada final
+
+            while (errorRelativo > margenError && iteracion < maxIteraciones) {
+                iteracion++;
+                
+                let xnuevoBiseccion, xnuevoFalsaPosicion;
+
+                if (metodoSeleccionado === "biseccion" || metodoSeleccionado === "hibrido") {
+                    xnuevoBiseccion = (a + b) / 2;
+                }
+                if (metodoSeleccionado === "falsaPosicion" || metodoSeleccionado === "hibrido") {
+                    xnuevoFalsaPosicion = (a * f(b) - b * f(a)) / (f(b) - f(a));
+                }
+
+                if (metodoSeleccionado === "hibrido") {
+                    // Comparar los resultados de ambos métodos
+                    const errorBiseccion = Math.abs((xnuevoBiseccion - xanterior) / xnuevoBiseccion) * 100;
+                    const errorFalsaPosicion = Math.abs((xnuevoFalsaPosicion - xanterior) / xnuevoFalsaPosicion) * 100;
+                    
+                    // Elegir el método que proporcione la mejor aproximación
+                    if (errorFalsaPosicion < errorBiseccion) {
+                        xnuevo = xnuevoFalsaPosicion;
+                    } else {
+                        xnuevo = xnuevoBiseccion;
+                    }
+                } else if (metodoSeleccionado === "biseccion") {
+                    xnuevo = xnuevoBiseccion;
+                } else if (metodoSeleccionado === "falsaPosicion") {
+                    xnuevo = xnuevoFalsaPosicion;
+                }
+
+                // Cálculo del error relativo porcentual
+                if (iteracion > 1) {
+                    errorRelativo = Math.abs((xnuevo - xanterior) / xnuevo) * 100;
+                }
+
+                resultados.push({
+                    iteracion: iteracion,
+                    intervalo: `[${a.toFixed(4)}, ${b.toFixed(4)}]`,
+                    xnuevo: xnuevo.toFixed(6),
+                    fxnuevo: f(xnuevo).toFixed(6),
+                    error: errorRelativo.toFixed(6)
+                });
+
+                // Actualizar intervalos según el método seleccionado o híbrido
+                if (f(a) * f(xnuevo) < 0) {
+                    b = xnuevo;
+                } else {
+                    a = xnuevo;
+                }
+
+                xanterior = xnuevo;
+
+                // Guardar la raíz aproximada cuando se alcanza el margen de error
+                if (errorRelativo <= margenError) {
+                    raizAproximada = { x: xnuevo, y: f(xnuevo) };
+                }
+            }
+
+            // Mostrar los resultados en la tabla
+            mostrarResultados(resultados);
+            // Actualizar el gráfico y resaltar la raíz aproximada
+            actualizarGrafico(funcionSeleccionada, intervaloA, intervaloB, f, raizAproximada);
+        }
+
+        // Función para obtener la función seleccionada y el margen de error adecuado
+        function obtenerFuncionYError(funcionSeleccionada) {
+            switch (funcionSeleccionada) {
+                case 'f1':
+                    return { f: (x) => x - Math.cos(x), margenError: 0.05 };
+                case 'f2':
+                    return { f: (x) => Math.pow(x, 3) - x - 1, margenError: 0.05 };
+                case 'f3':
+                    return { f: (x) => Math.pow(x, 2) - 2, margenError: 0.00001 };
+                case 'f4':
+                    return { f: (x) => x - 4 + Math.log(x), margenError: 0.001 };
+            }
+        }
+
+        // Mostrar los resultados en la tabla
+        function mostrarResultados(resultados) {
+            const resultadosTabla = document.querySelector("#resultados tbody");
+            resultadosTabla.innerHTML = ''; // Limpiar la tabla
+            resultados.forEach(resultado => {
+                const fila = `
+                    <tr>
+                        <td>${resultado.iteracion}</td>
+                        <td>${resultado.intervalo}</td>
+                        <td>${resultado.xnuevo}</td>
+                        <td>${resultado.fxnuevo}</td>
+                        <td>${resultado.error}%</td>
+                    </tr>
+                `;
+                resultadosTabla.innerHTML += fila;
+            });
+        }
+
+        function actualizarGrafico(funcionSeleccionada, a, b, f, raizAproximada) {
+            const ctx = document.getElementById('grafico').getContext('2d');
+            const data = [];
+            const intervaloA = parseFloat(a);
+            const intervaloB = parseFloat(b);
+
+            // Generar puntos para el gráfico dentro del rango dado
+            for (let x = intervaloA - 1; x <= intervaloB + 1; x += 0.1) {
+                data.push({ x: x, y: f(x) });
+            }
+
+            // Destruir el gráfico anterior si existe
+            if (chart) {
+                chart.destroy();
+            }
+
+            const datasets = [{
+                label: `f(x) para ${funcionSeleccionada}`,
+                data: data,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                fill: false,
+                showLine: true,
+                tension: 0.1,
+                borderWidth: 2,
+            }, {
+                // Marcar Intervalo A
+                label: 'Intervalo A',
+                data: [{ x: intervaloA, y: f(intervaloA) }],
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 1)',
+                pointRadius: 5,
+                pointHoverRadius: 7,
+            }, {
+                // Marcar Intervalo B
+                label: 'Intervalo B',
+                data: [{ x: intervaloB, y: f(intervaloB) }],
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 1)',
+                pointRadius: 5,
+                pointHoverRadius: 7,
+            }];
+
+            // Agregar el punto de la raíz aproximada si existe
+            if (raizAproximada) {
+                datasets.push({
+                    label: 'Raíz Aproximada',
+                    data: [{ x: raizAproximada.x, y: raizAproximada.y }],
+                    borderColor: 'rgba(0, 255, 0, 1)',
+                    backgroundColor: 'rgba(0, 255, 0, 0.5)',
+                    pointRadius: 8,
+                    pointHoverRadius: 10,
+                });
+            }
+
+            const config = {
+                type: 'line',
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    plugins: {
+                        zoom: {
+                            pan: {
+                                enabled: true,
+                                mode: 'xy',
+                            },
+                            zoom: {
+                                wheel: {
+                                    enabled: true,
+                                },
+                                pinch: {
+                                    enabled: true
+                                },
+                                mode: 'xy',
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: 'x'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'f(x)'
+                            }
+                        }
+                    }
+                }
+            };
+
+            // Crear un nuevo gráfico
+            chart = new Chart(ctx, config);
+        }
+    </script>
+</body>
+</html>

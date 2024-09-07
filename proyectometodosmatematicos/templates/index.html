@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulario de Entrada</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.ico') }}">
+
+</head>
+<body>
+    <h1>Ingresar Datos para Resolución</h1>
+    <form action="/" method="post">
+        <label for="func">Función (en términos de x):</label>
+        <input type="text" id="func" name="func" required><br><br>
+        
+        <label for="xl">Límite inferior (xl):</label>
+        <input type="number" id="xl" name="xl" step="any" required><br><br>
+        
+        <label for="xu">Límite superior (xu):</label>
+        <input type="number" id="xu" name="xu" step="any" required><br><br>
+        
+        <label for="tol">Tolerancia:</label>
+        <input type="number" id="tol" name="tol" step="any" required><br><br>
+        
+        <label for="max_iter">Número máximo de iteraciones:</label>
+        <input type="number" id="max_iter" name="max_iter" required><br><br>
+        
+        <label for="metodo">Método:</label>
+        <select id="metodo" name="metodo" required>
+            <option value="bisección">Bisección</option>
+            <option value="falsa_posicion">Falsa Posición</option>
+            <option value="newton_raphson">Newton-Raphson</option>
+            <option value="secantes">Secantes</option>
+            <option value="punto_fijo">Punto Fijo</option>
+        </select><br><br>
+
+        <div id="extra_inputs">
+            <!-- Para métodos que necesitan inputs adicionales -->
+            <label for="dfunc" style="display:none;">Derivada de la función (para Newton-Raphson):</label>
+            <input type="text" id="dfunc" name="dfunc" style="display:none;"><br><br>
+            
+            <label for="gfunc" style="display:none;">Función g(x) (para Punto Fijo):</label>
+            <input type="text" id="gfunc" name="gfunc" style="display:none;"><br><br>
+        </div>
+
+        <input type="submit" value="Resolver">
+    </form>
+
+    <script>
+        document.getElementById('metodo').addEventListener('change', function () {
+            var metodo = this.value;
+            if (metodo === 'newton_raphson') {
+                document.getElementById('dfunc').style.display = 'block';
+                document.getElementById('gfunc').style.display = 'none';
+            } else if (metodo === 'punto_fijo') {
+                document.getElementById('dfunc').style.display = 'none';
+                document.getElementById('gfunc').style.display = 'block';
+            } else {
+                document.getElementById('dfunc').style.display = 'none';
+                document.getElementById('gfunc').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

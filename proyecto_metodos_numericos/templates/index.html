@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solución de Métodos Numéricos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema Interactivo de Métodos Numéricos</h1>
+        <form id="numeric-methods-form" method="POST">
+            <div class="form-group">
+                <label for="func">Función (en términos de x):</label>
+                <input type="text" id="func" name="func" placeholder="Ej. x**3 - x - 2" required>
+            </div>
+            <div class="form-group">
+                <label for="x0">Límite Inferior (x0):</label>
+                <input type="number" step="any" id="x0" name="x0" required>
+            </div>
+            <div class="form-group">
+                <label for="x1">Límite Superior (x1):</label>
+                <input type="number" step="any" id="x1" name="x1" required>
+            </div>
+            <div class="form-group">
+                <label for="tol">Tolerancia:</label>
+                <input type="number" step="any" id="tol" name="tol" required>
+            </div>
+            <div class="form-group">
+                <label for="max_iter">Máximo de Iteraciones:</label>
+                <input type="number" id="max_iter" name="max_iter" required>
+            </div>
+            <div class="form-group">
+                <label for="method">Selecciona el Método:</label>
+                <select id="method" name="method" required>
+                    <option value="Bisection">Bisección</option>
+                    <option value="False Position">Falsa Posición</option>
+                    <option value="Newton-Raphson">Newton-Raphson</option>
+                    <option value="Secant">Secante</option>
+                    <option value="Fixed Point">Punto Fijo</option>
+                </select>
+            </div>
+            <button type="submit">Calcular</button>
+        </form>
+
+        <!-- Contenedor para los resultados -->
+        <div id="results">
+            {% if results %}
+                <h2>Resultados del Método {{ method }}</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Iteración</th>
+                            <th>Raíz Aproximada</th>
+                            <th>Error</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in results %}
+                        <tr>
+                            <td>{{ result.iteration }}</td>
+                            <td>{{ result.value }}</td>
+                            <td>{{ result.error }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <h3>Tiempo de Ejecución: {{ time }} segundos</h3>
+            {% endif %}
+
+            {% if graph %}
+                <div id="graph-container">
+                    {{ graph | safe }}
+                </div>
+            {% endif %}
+
+            {% if comparison %}
+                <div id="comparison-container">
+                    {{ comparison | safe }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

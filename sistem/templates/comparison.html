@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparación de Métodos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Comparación de Métodos</h1>
+        <form id="compareForm" action="/compare" method="post">
+            <label for="method1">Método 1:</label>
+            <select id="method1" name="method1" required>
+                <option value="biseccion">Bisección</option>
+                <option value="falsa_posicion">Falsa Posición</option>
+                <option value="newton_raphson">Newton-Raphson</option>
+                <option value="secantes">Secantes</option>
+                <option value="punto_fijo">Punto Fijo</option>
+            </select>
+            
+            <label for="method2">Método 2:</label>
+            <select id="method2" name="method2" required>
+                <option value="biseccion">Bisección</option>
+                <option value="falsa_posicion">Falsa Posición</option>
+                <option value="newton_raphson">Newton-Raphson</option>
+                <option value="secantes">Secantes</option>
+                <option value="punto_fijo">Punto Fijo</option>
+            </select>
+
+            <label for="function">Función (en términos de x):</label>
+            <input type="text" id="function" name="function" placeholder="e.g., x**3 - 4*x + 1" required>
+
+            <label for="xl">Límite inferior (xl):</label>
+            <input type="number" step="0.01" id="xl" name="xl">
+            
+            <label for="xu">Límite superior (xu):</label>
+            <input type="number" step="0.01" id="xu" name="xu">
+            
+            <button type="submit">Comparar</button>
+        </form>
+
+        <!-- Resultados de comparación -->
+        <div id="comparisonResults">
+            <!-- Mostrar resultados comparativos aquí -->
+        </div>
+    </div>
+    
+    <script>
+        // Aquí puedes agregar JavaScript para manejar la visualización de los resultados comparativos
+    </script>
+</body>
+</html>

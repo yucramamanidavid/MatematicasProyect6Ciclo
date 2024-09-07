@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultados</title>
+</head>
+<body>
+    <h1>Resultados</h1>
+    <p>Método: {{ resultados['method'] }}</p>
+    <p>Raíz encontrada: {{ resultados['root'] }}</p>
+    
+    <h2>Tabla de Iteraciones</h2>
+    <table border="1">
+        <tr>
+            <th>Iteración</th>
+            <th>a</th>
+            <th>b</th>
+            <th>c</th>
+            <th>f(c)</th>
+        </tr>
+        {% for iteracion in resultados['iteraciones'] %}
+        <tr>
+            <td>{{ iteracion['iter'] }}</td>
+            <td>{{ iteracion['a'] }}</td>
+            <td>{{ iteracion['b'] }}</td>
+            <td>{{ iteracion['c'] }}</td>
+            <td>{{ iteracion['f(c)'] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Gráfico</h2>
+    <img src="{{ url_for('static', filename='graph.png') }}" alt="Gráfico">
+
+    <br><br>
+    <a href="{{ url_for('index') }}">Regresar</a>
+</body>
+</html>

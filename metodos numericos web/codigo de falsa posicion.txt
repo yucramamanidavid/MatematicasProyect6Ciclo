@@ -1,0 +1,57 @@
+import numpy as np
+
+# Definición de la función
+def f(x):
+    return (0.8 - 0.3 * x) / x
+
+# Método de la falsa posición
+def false_position_method(xl, xu, tol=1e-5, max_iter=3):
+    iter_count = 0
+    xm_prev = xl
+    ea = 100  # Error aproximado inicial
+    x_r = None  # Raíz aproximada
+    
+    while iter_count < max_iter and ea > tol:
+        fxl = f(xl)
+        fxu = f(xu)
+        
+        # Cálculo de la raíz aproximada usando la falsa posición
+        xm = xu - (fxu * (xl - xu)) / (fxl - fxu)
+        fxm = f(xm)
+        
+        # Verificar si la raíz encontrada es exacta
+        if fxm == 0:
+            x_r = xm
+            break
+        
+        # Actualizar los límites del intervalo
+        if fxl * fxm < 0:
+            xu = xm
+        else:
+            xl = xm
+        
+        # Calcular el error aproximado
+        if iter_count > 0:
+            ea = abs((xm - xm_prev) / xm) * 100
+        
+        xm_prev = xm
+        iter_count += 1
+    
+    return xm, ea
+
+# Valores iniciales
+xl = 1
+xu = 3
+
+# Raíz real conocida
+x_root = 0.8 / 0.3  # = 2.6667
+
+# Ejecución del método de la falsa posición
+approx_root, ea = false_position_method(xl, xu)
+
+# Cálculo del error verdadero
+et = abs((approx_root - x_root) / x_root) * 100
+
+print(f"Raíz aproximada: {approx_root:.4f}")
+print(f"Error aproximado: {ea:.5f}%")
+print(f"Error verdadero: {et:.5f}%")

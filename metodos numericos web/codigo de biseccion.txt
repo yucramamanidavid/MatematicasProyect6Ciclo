@@ -1,0 +1,67 @@
+import math
+
+# Definición de la función
+def f(x):
+    return -0.5 * x**2 + 2.5 * x + 4.5
+
+# Cálculo de las raíces exactas usando la fórmula cuadrática
+def quadratic_roots(a, b, c):
+    discriminant = b**2 - 4 * a * c
+    root1 = (-b + math.sqrt(discriminant)) / (2 * a)
+    root2 = (-b - math.sqrt(discriminant)) / (2 * a)
+    return root1, root2
+
+# Método de bisección
+def bisection_method(xl, xu, tol=1e-5, max_iter=3):
+    iter_count = 0
+    xm_prev = xl
+    ea = 100  # Error aproximado inicial
+    x_r = None  # Raíz aproximada
+    
+    while iter_count < max_iter and ea > tol:
+        xm = (xl + xu) / 2
+        fxm = f(xm)
+        fxl = f(xl)
+        fxu = f(xu)
+        
+        if fxm == 0:
+            x_r = xm
+            break
+        
+        if fxl * fxm < 0:
+            xu = xm
+        else:
+            xl = xm
+        
+        if iter_count > 0:
+            ea = abs((xm - xm_prev) / xm) * 100
+        
+        xm_prev = xm
+        iter_count += 1
+    
+    return xm, ea
+
+# Coefficients for the quadratic equation
+a = -0.5
+b = 2.5
+c = 4.5
+
+# Calculate exact roots
+roots = quadratic_roots(a, b, c)
+
+# We are interested in the largest root for comparison
+exact_root = max(roots)
+
+# Valores iniciales
+xl = 5
+xu = 10
+
+# Ejecución del método de bisección
+approx_root, ea = bisection_method(xl, xu)
+
+# Cálculo del error verdadero
+et = abs((approx_root - exact_root) / exact_root) * 100
+
+print(f"Raíz aproximada: {approx_root}")
+print(f"Error aproximado: {ea:.5f}%")
+print(f"Error verdadero: {et:.5f}%")

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resolución de Métodos Numéricos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden; /* Hide horizontal overflow */
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 600px;
+            box-sizing: border-box;
+            border: 1px solid #ced4da;
+            overflow-y: auto; /* Enable vertical scrolling if needed */
+        }
+
+        h1 {
+            text-align: center;
+            color: #212529;
+            margin-bottom: 20px;
+            font-size: 24px;
+            overflow: hidden; /* Prevents overflow issues with the title */
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input[type="text"], input[type="number"], textarea, select {
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+            border-color: #6c757d;
+            outline: none;
+            box-shadow: 0 0 8px rgba(108, 117, 125, 0.25);
+        }
+
+        button {
+            background-color: #343a40;
+            color: #ffffff;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button:hover {
+            background-color: #495057;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            background-color: #212529;
+            transform: translateY(0);
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .button-grid button {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            background-color: #e9ecef;
+            color: #495057;
+        }
+
+        .button-grid button:hover {
+            background-color: #dee2e6;
+        }
+
+        .button-grid button:active {
+            background-color: #ced4da;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Resolución de Métodos Numéricos</h1>
+        
+        <form id="solveForm" action="/solve" method="post">
+            <label for="function">Función (en términos de x):</label>
+            <input type="text" id="function" name="function" placeholder="e.g., x**3 - 4*x + 1" required>
+            
+            <label for="function_preview">Vista previa de la función:</label>
+            <textarea id="function_preview" name="function_preview" rows="4" cols="50" readonly></textarea>
+
+            <div class="button-grid">
+                <button type="button" onclick="appendToFunction('1')">1</button>
+                <button type="button" onclick="appendToFunction('2')">2</button>
+                <button type="button" onclick="appendToFunction('3')">3</button>
+                <button type="button" onclick="appendToFunction('+')">+</button>
+                <button type="button" onclick="appendToFunction('4')">4</button>
+                <button type="button" onclick="appendToFunction('5')">5</button>
+                <button type="button" onclick="appendToFunction('6')">6</button>
+                <button type="button" onclick="appendToFunction('-')">-</button>
+                <button type="button" onclick="appendToFunction('7')">7</button>
+                <button type="button" onclick="appendToFunction('8')">8</button>
+                <button type="button" onclick="appendToFunction('9')">9</button>
+                <button type="button" onclick="appendToFunction('*')">*</button>
+                <button type="button" onclick="appendToFunction('0')">0</button>
+                <button type="button" onclick="appendToFunction('.')">.</button>
+                <button type="button" onclick="appendToFunction('x')">x</button>
+                <button type="button" onclick="appendToFunction('/')">/</button>
+                <button type="button" onclick="appendToFunction('(')">(</button>
+                <button type="button" onclick="appendToFunction(')')">)</button>
+                <button type="button" onclick="clearFunction()">C</button>
+                <button type="button" onclick="deleteLastChar()">⌫</button> <!-- Botón para borrar el último carácter -->
+            </div>
+
+            <label for="xl">Límite inferior (xl):</label>
+            <input type="number" step="0.01" id="xl" name="xl" required>
+            
+            <label for="xu">Límite superior (xu):</label>
+            <input type="number" step="0.01" id="xu" name="xu" required>
+
+            <label for="tolerance">Tolerancia:</label>
+            <input type="number" step="0.0001" id="tolerance" name="tolerance" value="0.0001" required>
+
+            <label for="max_iter">Número máximo de iteraciones:</label>
+            <input type="number" id="max_iter" name="max_iter" value="50" required>
+
+            <label for="method">Método:</label>
+            <select id="method" name="method" required>
+                <option value="biseccion">Bisección</option>
+                <option value="falsa_posicion">Falsa Posición</option>
+            </select>
+
+            <button type="submit">Resolver</button>
+        </form>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        function appendToFunction(value) {
+            const functionInput = document.getElementById('function');
+            functionInput.value += value;
+            updatePreview(); // Actualiza la vista previa
+        }
+
+        function clearFunction() {
+            const functionInput = document.getElementById('function');
+            functionInput.value = '';
+            updatePreview(); // Limpiar la vista previa
+        }
+
+        function deleteLastChar() {
+            const functionInput = document.getElementById('function');
+            functionInput.value = functionInput.value.slice(0, -1);
+            updatePreview(); // Actualizar la vista previa después de borrar
+        }
+
+        function updatePreview() {
+            const functionInput = document.getElementById('function');
+            const preview = document.getElementById('function_preview');
+            preview.value = functionInput.value;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados de la Comparación</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Resultados de la Comparación</h1>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Método</th>
+                    <th>Resultado</th>
+                    <th>Errores</th>
+                    <th>Iteraciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for method, result in results.items() %}
+                <tr>
+                    <td>{{ method }}</td>
+                    <td>{{ result['root'] }}</td>
+                    <td>
+                        Error estimado: {{ result['error_estimado'] }}<br>
+                        Error verdadero: {{ result['error_verdadero'] }}
+                    </td>
+                    <td>{{ result['iterations'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="{{ url_for('index') }}">Volver a la página principal</a>
+    </div>
+</body>
+</html>

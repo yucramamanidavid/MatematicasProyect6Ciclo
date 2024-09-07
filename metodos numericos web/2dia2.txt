@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Métodos Numéricos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Solución de Problemas por Métodos Numéricos</h1>
+        <form method="POST">
+            <label for="function">Función (en términos de x):</label>
+            <input type="text" id="function" name="function" placeholder="Ej: x**3 - x - 2" oninput="updatePreview()" required><br>
+
+            <div class="math-symbols">
+                <button type="button" onclick="insertAtCursor('+')">+</button>
+                <button type="button" onclick="insertAtCursor('-')">-</button>
+                <button type="button" onclick="insertAtCursor('*')">*</button>
+                <button type="button" onclick="insertAtCursor('/')">/</button>
+                <button type="button" onclick="insertAtCursor('**')">^</button>
+                <button type="button" onclick="insertAtCursor('sqrt(')">√</button>
+                <button type="button" onclick="insertAtCursor('(')">(</button>
+                <button type="button" onclick="insertAtCursor(')')">)</button>
+                <button type="button" onclick="insertAtCursor('x')">x</button>
+                <button type="button" onclick="insertAtCursor('0')">0</button>
+                <button type="button" onclick="insertAtCursor('1')">1</button>
+                <button type="button" onclick="insertAtCursor('2')">2</button>
+                <button type="button" onclick="insertAtCursor('3')">3</button>
+                <button type="button" onclick="insertAtCursor('4')">4</button>
+                <button type="button" onclick="insertAtCursor('5')">5</button>
+                <button type="button" onclick="insertAtCursor('6')">6</button>
+                <button type="button" onclick="insertAtCursor('7')">7</button>
+                <button type="button" onclick="insertAtCursor('8')">8</button>
+                <button type="button" onclick="insertAtCursor('9')">9</button>
+            </div>
+
+            <label for="preview">Vista previa de la función:</label>
+            <div id="preview"></div>
+
+            <label for="xl">Límite inferior (xl):</label>
+            <input type="number" id="xl" name="xl" step="any" required><br>
+
+            <label for="xu">Límite superior (xu):</label>
+            <input type="number" id="xu" name="xu" step="any" required><br>
+
+            <label for="tol">Tolerancia:</label>
+            <input type="number" id="tol" name="tol" step="any" value="0.00001"><br>
+
+            <label for="max_iter">Máximo de iteraciones:</label>
+            <input type="number" id="max_iter" name="max_iter" value="100"><br>
+
+            <label for="method">Método:</label>
+            <select id="method" name="method">
+                <option value="biseccion">Bisección</option>
+                <option value="falsa_posicion">Falsa Posición</option>
+            </select><br>
+
+            <input type="submit" value="Calcular">
+        </form>
+
+        {% if error_message %}
+        <div class="error">
+            <p>{{ error_message }}</p>
+        </div>
+        {% endif %}
+
+        {% if result %}
+        <div class="summary-container">
+            <h2>Resumen de la Operación</h2>
+            <p><strong>Función:</strong> {{ function_str }}</p>
+            <p><strong>Límite inferior (xl):</strong> {{ xl }}</p>
+            <p><strong>Límite superior (xu):</strong> {{ xu }}</p>
+            <p><strong>Tolerancia:</strong> {{ tol }}</p>
+            <p><strong>Número máximo de iteraciones:</strong> {{ max_iter }}</p>
+            <p><strong>Método seleccionado:</strong> {{ method }}</p>
+            <p><strong>Raíz aproximada:</strong> {{ result }}</p>
+        </div>
+
+        <div class="steps-container">
+            <button onclick="toggleSteps()">Mostrar/Ocultar Pasos Detallados</button>
+            <div id="steps-content" style="display: none;">
+                <h3>Detalles de los Pasos:</h3>
+                <ol>
+                    {% for step in iteraciones %}
+                        <li>
+                            <strong>Iteración {{ loop.index }}:</strong>
+                            <ul>
+                                <li><strong>Valor de la raíz:</strong> {{ step }}</li>
+                                <li><strong>Error:</strong> {{ errores[loop.index0] }}</li>
+                            </ul>
+                        </li>
+                    {% endfor %}
+                </ol>
+            </div>
+        </div>
+
+        <div class="plot-container">
+            <h2>Gráficas</h2>
+            {% if plot_url %}
+                <img src="{{ plot_url }}" alt="Gráfico de Iteraciones">
+            {% endif %}
+            {% if function_plot_url %}
+                <img src="{{ function_plot_url }}" alt="Gráfico de la Función">
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function updatePreview() {
+            var functionInput = document.getElementById('function').value;
+            document.getElementById('preview').innerHTML = functionInput
+                .replace(/sqrt\(/g, '<span style="font-size: larger;">√</span>(')
+                .replace(/\*\*/g, '^')
+                .replace(/\*/g, '×')
+                .replace(/\//g, '÷')
+                .replace(/x/g, '<span style="font-weight: bold;">x</span>');
+        }
+
+        function insertAtCursor(value) {
+            var functionInput = document.getElementById('function');
+            var cursorPos = functionInput.selectionStart;
+            var textBefore = functionInput.value.substring(0, cursorPos);
+            var textAfter = functionInput.value.substring(cursorPos);
+            functionInput.value = textBefore + value + textAfter;
+            functionInput.selectionStart = functionInput.selectionEnd = cursorPos + value.length;
+            updatePreview();
+        }
+
+        function toggleSteps() {
+            var stepsContent = document.getElementById('steps-content');
+            if (stepsContent.style.display === "none") {
+                stepsContent.style.display = "block";
+            } else {
+                stepsContent.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

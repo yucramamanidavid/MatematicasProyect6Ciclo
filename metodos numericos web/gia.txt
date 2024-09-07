@@ -1,0 +1,2 @@
+<label for="preview">Vista previa de la función:</label>
+            <div id="preview"></div>

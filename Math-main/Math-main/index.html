@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Métodos Numéricos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222332;
+            margin: 0;
+            padding: 1% 1%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #c6c4cd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 10px 20px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            width: 100%;
+            color: #000;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #000;
+        }
+
+        input,
+        select {
+            color: #000;
+            background: transparent;
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #222332;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background-color: white;
+            color: #222332;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            color: white;
+            background-color: #222332;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        canvas {
+            margin-top: 30px;
+            width: 100%;
+            max-height: 1200px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Métodos Numéricos</h1>
+
+        <div class="form-group">
+            <label for="funcion">Selecciona o ingresa una función personalizada:</label>
+            <select id="funcion" onchange="toggleFuncionInput()">
+                <option value="f1">f(x) = x - cos(x)</option>
+                <option value="f2">f(x) = x^3 - x - 1</option>
+                <option value="f3">f(x) = x^2 - 2</option>
+                <option value="f4">f(x) = x - 4 + ln(x)</option>
+                <option value="custom">Función personalizada</option>
+            </select>
+            <input type="text" id="funcionPersonalizada" placeholder="Ingrese su función" style="display:none;">
+        </div>
+
+        <div class="form-group">
+            <label for="metodo">Selecciona el método:</label>
+            <select id="metodo">
+                <option value="biseccion">Bisección</option>
+                <option value="falsaPosicion">Falsa Posición</option>
+                <option value="hibrido">Híbrido [Bisec-FalsPosic]</option>
+                <option value="secante">Secante</option> 
+                <option value="steffensen">Steffensen</option>
+                <option value="newton-raphson">Newton-Raphson</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="intervaloA">Intervalo A:</label>
+            <input type="text" id="intervaloA" placeholder="Ingrese el valor de A">
+        </div>
+
+        <div class="form-group">
+            <label for="intervaloB">Intervalo B:</label>
+            <input type="text" id="intervaloB" placeholder="Ingrese el valor de B [Ya no será necesário para Steffensen - Newton-Raphson">
+        </div>
+
+        <div class="form-group">
+            <label for="error">Margen de error (opcional):</label>
+            <input type="number" id="error" placeholder="Tolerancia: 0.01" step="0.01">
+        </div>
+
+        <div class="form-group">
+            <label for="decimales">Cifras después del punto decimal (opcional):</label>
+            <input type="number" id="decimales" placeholder="Valor por defecto: 4" step="1" min="0">
+        </div>
+
+        <button onclick="calcular()">Calcular</button>
+
+        <div class="table-container">
+            <table id="resultados">
+                <thead>
+                    <tr>
+                        <th>Iteración</th>
+                        <th>Intervalo [a, b]</th>
+                        <th>x nuevo</th>
+                        <th>f(x nuevo)</th>
+                        <th>Error Relativo (%)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <canvas id="grafico"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.0.0/math.min.js"></script>
+
+    <script>
+        let chart;
+
+        const funcionesPredefinidas = {
+            f1: (x) => x - Math.cos(x),
+            f2: (x) => Math.pow(x, 3) - x - 1,
+            f3: (x) => Math.pow(x, 2) - 2,
+            f4: (x) => x - 4 + Math.log(x)
+        };
+
+        const margenesError = {
+            f1: 0.05,
+            f2: 0.05,
+            f3: 0.00001,
+            f4: 0.001
+        };
+
+        function toggleFuncionInput() {
+            document.getElementById("funcionPersonalizada").style.display = 
+                document.getElementById("funcion").value === "custom" ? "block" : "none";
+        }
+
+        function calcular() {
+            const funcionSeleccionada = document.getElementById("funcion").value;
+            const metodoSeleccionado = document.getElementById("metodo").value;
+            const intervaloA = parseFloat(document.getElementById("intervaloA").value);
+            const intervaloB = parseFloat(document.getElementById("intervaloB").value);
+            const margenErrorUsuario = parseFloat(document.getElementById("error").value);
+            const decimales = parseInt(document.getElementById("decimales").value) || 4;
+            let f, df, margenError;
+
+            if (funcionSeleccionada === "custom") {
+                let funcionPersonalizada = document.getElementById("funcionPersonalizada").value;
+                console.log("Función procesada: ", funcionPersonalizada); // Log para verificar la función procesada
+                try {
+                    // Validar y construir la función utilizando Math.js
+                    const node = math.parse(funcionPersonalizada);
+                    const code = node.compile(); // Compilar el código con Math.js
+                    f = (x) => code.evaluate({ x });
+
+                    // Calcular la derivada de la función
+                    const derivativeNode = math.derivative(node, 'x');
+                    const derivativeCode = derivativeNode.compile();
+                    df = (x) => derivativeCode.evaluate({ x });
+                } catch (e) {
+                    console.error("La función personalizada ingresada no es válida.",funcionPersonalizada);
+                    console.error(e.message);
+                    return;
+                }
+                margenError = margenErrorUsuario || 0.01;
+            } else {
+                f = funcionesPredefinidas[funcionSeleccionada];
+                margenError = margenErrorUsuario || margenesError[funcionSeleccionada];
+
+                 // Derivadas aproximadas para las funciones predefinidas
+                if (funcionSeleccionada === "f1") {
+                    df = (x) => 1 + Math.sin(x); // Derivada de f1: f'(x) = 1 + sin(x)
+                } else if (funcionSeleccionada === "f2") {
+                    df = (x) => 3 * Math.pow(x, 2) - 1; // Derivada de f2: f'(x) = 3x^2 - 1
+                } else if (funcionSeleccionada === "f3") {
+                    df = (x) => 2 * x; // Derivada de f3: f'(x) = 2x
+                } else if (funcionSeleccionada === "f4") {
+                    df = (x) => 1 - (1 / x); // Derivada de f4: f'(x) = 1 - 1/x
+                }
+            }
+
+            let a = intervaloA,
+                b = intervaloB,
+                xnuevo, xanterior = 0,
+                errorRelativo = 100,
+                iteracion = 0,
+                resultados = [],
+                maxIteraciones = 100,
+                raizAproximada = null;
+
+            if(metodoSeleccionado === "newton-raphson"){
+                xanterior = (a + b) / 2;
+            }
+
+            while (errorRelativo > margenError && iteracion < maxIteraciones) {
+                iteracion++;
+                let xnuevoBiseccion = (a + b) / 2;
+                let xnuevoFalsaPosicion = (a * f(b) - b * f(a)) / (f(b) - f(a));
+                let xnuevoSecante = b - (f(b) * (b - a)) / (f(b) - f(a));
+                let xnuevoSteffensen;
+                let xnuevoNewtonRaphson = xanterior - (f(xanterior) / df(xanterior));
+
+                if (metodoSeleccionado === "newton-raphson") {
+                    xnuevo = xnuevoNewtonRaphson;
+                } else if (metodoSeleccionado === "steffensen") {
+                    const fx = f(a);
+                    const f_x_plus_fx = f(a + fx);
+                    const denominador = f_x_plus_fx - fx;
+                    const epsilon = 1e-10; // Umbral de tolerancia para evitar divisiones por cero
+
+                    if (Math.abs(denominador) < epsilon) {
+                        alert("El método de Steffensen no puede continuar: división por cero o resultado muy cercano a cero.");
+                        break; // O puedes cambiar a otro método aquí si lo prefieres
+                    }
+
+                    xnuevoSteffensen = a - (Math.pow(fx, 2)) / denominador;
+                    xnuevo = xnuevoSteffensen;
+                }else if (metodoSeleccionado === "hibrido") {
+                    const errorBiseccion = Math.abs((xnuevoBiseccion - xanterior) / xnuevoBiseccion) * 100;
+                    const errorFalsaPosicion = Math.abs((xnuevoFalsaPosicion - xanterior) / xnuevoFalsaPosicion) * 100;
+                    xnuevo = errorFalsaPosicion < errorBiseccion ? xnuevoFalsaPosicion : xnuevoBiseccion;
+                } else if (metodoSeleccionado === "biseccion") {
+                    xnuevo = xnuevoBiseccion;
+                } else if (metodoSeleccionado === "secante"){
+                    xnuevo = xnuevoSecante
+                } else {
+                    xnuevo = xnuevoFalsaPosicion;
+                }
+
+                errorRelativo = Math.abs((xnuevo - xanterior) / xnuevo) * 100;
+                resultados.push([iteracion, `[${a.toFixed(3)}, ${b.toFixed(3)}]`, xnuevo.toFixed(decimales), f(xnuevo).toFixed(4), errorRelativo.toFixed(4)]);
+
+                if (metodoSeleccionado ===  "steffensen" || metodoSeleccionado === "newton-raphson"){
+                    a = xnuevo;
+                } else {
+                    if (f(a) * f(xnuevo) < 0) {
+                        b = xnuevo;
+                    } else if(f(xnuevo) * f(b) < 0){
+                        a = xnuevo;
+                    } else {
+                        break;
+                    }
+                }
+                
+                xanterior = xnuevo;
+
+                // Guardar la raíz aproximada cuando se alcanza el margen de error
+                if (errorRelativo <= margenError) {
+                    raizAproximada = { x: xnuevo, y: f(xnuevo) };
+                }
+            }
+
+            if (raizAproximada !== null) {
+                console.log(`[${metodoSeleccionado}]Raíz aproximada encontrada: ${raizAproximada.x}`);
+                generarGrafico(funcionSeleccionada, intervaloA, intervaloB, f, raizAproximada);
+            } else {
+                alert("No se encontró una raíz dentro del margen de error especificado.");
+            }
+
+            mostrarResultados(resultados);
+        }
+
+        function mostrarResultados(resultados) {
+            const tabla = document.getElementById("resultados").getElementsByTagName('tbody')[0];
+            tabla.innerHTML = "";
+
+            resultados.forEach((resultado) => {
+                let fila = tabla.insertRow();
+                resultado.forEach((dato) => {
+                    let celda = fila.insertCell();
+                    celda.innerHTML = dato;
+                });
+            });
+        }
+
+        function generarGrafico(funcionSeleccionada, a, b, f, raizAproximada) {
+            //const valoresY = valoresX.map(x => f(parseFloat(x)));
+
+            const ctx = document.getElementById('grafico').getContext('2d');
+            const data = [];
+            
+             // Crear un rango amplio de valores de x para trazar la línea de la función
+            for (let x = parseFloat(a) - 2; x <= parseFloat(b) + 2; x += 0.1) {
+                data.push({ x, y: f(x) });
+            }
+
+            // Destruir el gráfico anterior si existe
+            if (chart) {
+                chart.destroy();
+            }
+
+            const datasets = [{
+                label: `f(x) para ${funcionSeleccionada}`,
+                data: data,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                fill: false,
+                showLine: true,
+                tension: 0.1,
+                borderWidth: 2,
+                //pointRadius: 0,  // Ocultar puntos
+                //lineTension: 0.1 // Linea suave
+            }, {
+                // Marcar Intervalo A
+                label: 'Intervalo A',
+                data: [{ x: parseFloat(a), y: f(a) }],
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 1)',
+                pointRadius: 7,
+                pointHoverRadius: 9,
+            }, {
+                // Marcar Intervalo B
+                label: 'Intervalo B',
+                data: [{ x: parseFloat(b), y: f(b) }],
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 1)',
+                pointRadius: 7,
+                pointHoverRadius: 9,
+            }];
+
+            // Agregar el punto de la raíz aproximada si existe
+            if (raizAproximada) {
+                datasets.push({
+                    label: 'Raíz Aproximada',
+                    data: [{ x: raizAproximada.x, y: raizAproximada.y }],
+                    borderColor: 'rgba(0, 255, 0, 1)',
+                    backgroundColor: 'rgba(0, 255, 0, 0.5)',
+                    pointRadius: 8,
+                    pointHoverRadius: 10,
+                });
+            }
+
+            const config = {
+                type: 'line',
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    plugins: {
+                        zoom: {
+                            pan: {
+                                enabled: true,
+                                mode: 'xy',
+                            },
+                            zoom: {
+                                wheel: {
+                                    enabled: true,
+                                },
+                                pinch: {
+                                    enabled: true
+                                },
+                                mode: 'xy',
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: 'x'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'f(x)'
+                            }
+                        }
+                    }
+                }
+            };
+
+            // Crear un nuevo gráfico
+            chart = new Chart(ctx, config);
+        }
+    </script>
+</body>
+
+</html>

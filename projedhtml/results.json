@@ -1,0 +1,80 @@
+{
+    "bisection": [
+        {
+            "root": 1.75,
+            "error_estimado": 0.25,
+            "error_verdadero": 0.0625,
+            "iterations": 3,
+            "data": [
+                {
+                    "iteration": 1,
+                    "a": 1.0,
+                    "b": 3.0,
+                    "c": 2.0,
+                    "fa": -2.0,
+                    "fb": 6.0,
+                    "fc": 1.0,
+                    "error": 2.0
+                },
+                {
+                    "iteration": 2,
+                    "a": 1.0,
+                    "b": 2.0,
+                    "c": 1.5,
+                    "fa": -2.0,
+                    "fb": 1.0,
+                    "fc": -0.75,
+                    "error": 1.0
+                },
+                {
+                    "iteration": 3,
+                    "a": 1.5,
+                    "b": 2.0,
+                    "c": 1.75,
+                    "fa": -0.75,
+                    "fb": 1.0,
+                    "fc": 0.0625,
+                    "error": 0.5
+                }
+            ]
+        },
+        {
+            "root": 1.75,
+            "error_estimado": 0.25,
+            "error_verdadero": 0.0625,
+            "iterations": 3,
+            "data": [
+                {
+                    "iteration": 1,
+                    "a": 1.0,
+                    "b": 3.0,
+                    "c": 2.0,
+                    "fa": -2.0,
+                    "fb": 6.0,
+                    "fc": 1.0,
+                    "error": 2.0
+                },
+                {
+                    "iteration": 2,
+                    "a": 1.0,
+                    "b": 2.0,
+                    "c": 1.5,
+                    "fa": -2.0,
+                    "fb": 1.0,
+                    "fc": -0.75,
+                    "error": 1.0
+                },
+                {
+                    "iteration": 3,
+                    "a": 1.5,
+                    "b": 2.0,
+                    "c": 1.75,
+                    "fa": -0.75,
+                    "fb": 1.0,
+                    "fc": 0.0625,
+                    "error": 0.5
+                }
+            ]
+        }
+    ]
+}

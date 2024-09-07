@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados del Método {{ method }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Resultados del Método {{ method }}</h1>
+        <table>
+            <thead>
+                <tr>
+                    {% for key in result[0].keys() %}
+                        <th>{{ key }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in result %}
+                <tr>
+                    {% for value in row.values() %}
+                        <td>{{ value }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div id="graphContainer"></div>
+    </div>
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var result = {{ result|tojson }};
+            
+            if (result.length > 0) {
+                var iterations = result.map(row => row.iteration);
+                var values = result.map(row => row.c); // Cambia 'c' por el valor relevante a graficar
+
+                var trace = {
+                    x: iterations,
+                    y: values,
+                    mode: 'lines+markers',
+                    type: 'scatter'
+                };
+
+                var data = [trace];
+                
+                Plotly.newPlot('graphContainer', data, {
+                    title: 'Evolución de las Aproximaciones para {{ method }}',
+                    xaxis: { title: 'Iteración' },
+                    yaxis: { title: 'Valor de c' }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

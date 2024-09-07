@@ -1,0 +1,53 @@
+body {
+    padding-top: 20px;
+    background-image: url('/static/images/1.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.container {
+    max-width: 1200px;
+    background-color: rgba(255, 255, 255, 0.8); /* Fondo blanco semi-transparente */
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.card {
+    background-color: rgba(255, 255, 255, 0.9); /* Fondo blanco semi-transparente para tarjetas */
+    margin-bottom: 20px;
+}
+
+.btn-primary {
+    margin-top: 20px;
+}
+
+.table th, .table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.img-fluid {
+    max-width: 100%;
+    height: auto;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.pdf-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.btn-icon {
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon i {
+    margin-right: 8px;
+}
